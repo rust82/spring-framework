@@ -104,6 +104,17 @@ public final class BeanWrapperTests {
 		public void setBar(Bar bar) {
 			this.bar = bar;
 		}
+		
+		private List<Bar> bars;
+		
+		
+		public List<Bar> getBars() {
+			return bars;
+		}
+
+		public void setBars(List<Bar> bars) {
+			this.bars = bars;
+		}
 
 		private List<Map> listOfMaps;
 
@@ -1897,14 +1908,53 @@ public final class BeanWrapperTests {
 		TEST_VALUE
 	}
 	
-	@Test
-	
+	@Test	
 	public void testNoAutoGrowOnSetPropValNull(){
-		Foo foo = new Foo();
+		Foo foo = new Foo();		
 		assertTrue(foo.getBar()== null) ;
 		BeanWrapper bw = new BeanWrapperImpl(foo);
 		bw.setAutoGrowNestedPaths(true);
 		bw.setPropertyValue("bar.baz", null);
 		assertTrue(foo.getBar()== null) ;
+	}
+	
+	@Test
+	public void testNoAutoGrowOnSetPropValObjectNull(){
+		ITestBean rod = new TestBean("rod", 31);
+		ITestBean kerry = new TestBean("kerry", 0);
+
+		BeanWrapper bw = new BeanWrapperImpl(rod);
+		bw.setPropertyValue("spouse", kerry);
+
+		assertTrue("nested set worked", rod.getSpouse() == kerry);
+		assertTrue("no back relation", kerry.getSpouse() == null);
+		bw.setPropertyValue(new PropertyValue("spouse.spouse", null));
+		assertTrue("nested set worked", kerry.getSpouse() == null);
+		assertTrue("kerry age not set", kerry.getAge() == 0);
+		bw.setPropertyValue(new PropertyValue("spouse.age", new Integer(35)));
+		assertTrue("Set primitive on spouse", kerry.getAge() == 35);
+
+		assertEquals(kerry, bw.getPropertyValue("spouse"));
+		assertEquals(null, bw.getPropertyValue("spouse.spouse"));
+	}
+	
+	@Test
+	public void testNoAutoGrowOnSetPropValListObjectNull(){
+		Foo foo = new Foo();
+		assertTrue(foo.getBars()== null);
+		BeanWrapper bw = new BeanWrapperImpl(foo);
+		bw.setAutoGrowNestedPaths(true);
+		bw.setPropertyValue("bars[0].baz", null);
+		assertTrue(foo.getBars()== null) ;
+	}
+	
+	@Test
+	public void testNoAutoGrowOnSetPropValListObjectNotNull(){
+		Foo foo = new Foo();
+		assertTrue(foo.getBars()== null);
+		BeanWrapper bw = new BeanWrapperImpl(foo);
+		bw.setAutoGrowNestedPaths(true);
+		bw.setPropertyValue("bars[0].baz", "abc");
+		assertTrue(foo.getBars()!= null) ;
 	}
 }
